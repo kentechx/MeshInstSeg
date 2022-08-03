@@ -48,7 +48,7 @@ def run(**kwargs):
         monitor='epoch', mode='max', save_last=True,
         every_n_epochs=cfg.save_freq, save_on_train_epoch_end=True)
     trainer = pl.Trainer(logger, accelerator='gpu', devices=kwargs['gpus'], max_epochs=cfg.epochs, callbacks=[callback],
-                         **debug_args)
+                         deterministic=kwargs['deterministic'], **debug_args)
 
     # resume
     ckpt_path = osp.join(logger.log_dir, 'checkpoints/last.ckpt') if kwargs['auto_resume'] else None
