@@ -36,6 +36,8 @@ class DualBlock(nn.Module):
             self.DualConvGroup.append(PCloudConv1)
             _in_channels_ += (2*growth_rate*2)
 
+        self.DualConvGroup = nn.ModuleList(self.DualConvGroup)
+
         self.Transit = PerItemConv3d(_in_channels_, out_channels, bn_momentum=bn_momentum)
 
     def forward(self, inputs, vertex, face, full_nf_count, full_vt_map, filt_coeff, nv_in):
@@ -83,9 +85,11 @@ class EncoderMeshBlock(nn.Module):
             self.MeshConvGroup.append(MeshConv2)
             _in_channels_ += growth_rate
 
+        self.MeshConvGroup = nn.ModuleList(self.MeshConvGroup)
+
         self.Transit = PerItemConv3d(_in_channels_, out_channels, bn_momentum=bn_momentum)
 
-    def forward(self, inputs, face, full_nf_count, full_vt_map, filt_coeff):
+    def forward(self, inputs, vertex, face, full_nf_count, full_vt_map, filt_coeff, nv_in):
         for n in range(0, self.maxIter):
             net = self.MeshConvGroup[2*n](inputs, face, full_nf_count, full_vt_map, filt_coeff)
             net = self.MeshConvGroup[2*n+1](net, face, full_nf_count, full_vt_map, filt_coeff)

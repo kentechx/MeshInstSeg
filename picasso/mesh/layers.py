@@ -26,7 +26,7 @@ class F2FConv3d(nn.Module):
        Variable tensor
     """
     def __init__(self, in_channels, out_channels, use_xavier=True, stddev=1e-3,
-                 with_bn=True, activation_fn=nn.ReLU, bn_momentum=0.1):
+                 with_bn=True, activation_fn=nn.ReLU(), bn_momentum=0.1):
         super(F2FConv3d,self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -50,8 +50,7 @@ class F2FConv3d(nn.Module):
         num_texture = torch.cumsum(num_texture) # cumulative sum required
         outputs = conv3d.facet2facet(input_texture, self.weights, bary_coeff, num_texture)
 
-        if self.with_bias:
-            outputs = outputs + self.biases
+        outputs = outputs + self.biases
         if self.activation_fn is not None:
             outputs = self.activation_fn(outputs)
         if self.with_bn:
@@ -72,7 +71,7 @@ class V2FConv3d(nn.Module):
     """
     def __init__(self, in_channels, out_channels, depth_multiplier=1,
                  use_xavier=True, stddev=1e-3, with_bn=True,
-                 activation_fn=nn.ReLU, bn_momentum=0.1):
+                 activation_fn=nn.ReLU(), bn_momentum=0.1):
         super(V2FConv3d,self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -100,8 +99,7 @@ class V2FConv3d(nn.Module):
     def forward(self, inputs, face):
         outputs = conv3d.vertex2facet(inputs, self.spatial_weights, face)
         outputs = torch.matmul(outputs, self.depth_weights)
-        if self.with_bias:
-            outputs = outputs + self.biases
+        outputs = outputs + self.biases
         if self.activation_fn is not None:
             outputs = self.activation_fn(outputs)
         if self.with_bn:
@@ -123,7 +121,7 @@ class F2VConv3d(nn.Module):
      """
     def __init__(self, in_channels, out_channels, kernel_size, depth_multiplier=1,
                  use_xavier=True, stddev=1e-3, with_bn=True,
-                 activation_fn=nn.ReLU, bn_momentum=0.1):
+                 activation_fn=nn.ReLU(), bn_momentum=0.1):
         super(F2VConv3d, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -152,8 +150,7 @@ class F2VConv3d(nn.Module):
         outputs = conv3d.facet2vertex(inputs, self.spatial_weights,
                                                    filt_coeff, face, nf_count, vt_map)
         outputs = torch.matmul(outputs, self.depth_weights)
-        if self.with_bias:
-            outputs = outputs + self.biases
+        outputs = outputs + self.biases
         if self.activation_fn is not None:
             outputs = self.activation_fn(outputs)
         if self.with_bn:
@@ -165,13 +162,13 @@ class V2VConv3d(nn.Module):
     # out_channels and depth_multiplier are vectors of 2 values.
     def __init__(self, in_channels, dual_out_channels, kernel_size,
                  dual_depth_multiplier:List[int], use_xavier=True, stddev=1e-3,
-                 with_bn=True, activation_fn=nn.ReLU, bn_momentum=0.1):
+                 with_bn=True, activation_fn=nn.ReLU(), bn_momentum=0.1):
         super(V2VConv3d, self).__init__()
-        self.V2FConv3d = V2FConv3d(in_channels, dual_out_channels[0],
+        self.V2F_conv3d = V2FConv3d(in_channels, dual_out_channels[0],
                                    dual_depth_multiplier[0], use_xavier,
                                    stddev, with_bn, activation_fn, bn_momentum)
 
-        self.F2VConv3d = F2VConv3d(dual_out_channels[0], dual_out_channels[1],
+        self.F2V_conv3d = F2VConv3d(dual_out_channels[0], dual_out_channels[1],
                                    kernel_size, dual_depth_multiplier[1], use_xavier,
                                     stddev, with_bn, activation_fn, bn_momentum)
 
@@ -193,7 +190,7 @@ class PerItemConv3d(nn.Module):
       Variable tensor
     """
     def __init__(self, in_channels, out_channels, use_xavier=True, stddev=1e-3,
-                 with_bn=True, activation_fn=nn.ReLU, bn_momentum=0.1):
+                 with_bn=True, activation_fn=nn.ReLU(), bn_momentum=0.1):
         super(PerItemConv3d, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -215,8 +212,7 @@ class PerItemConv3d(nn.Module):
 
     def forward(self, inputs):
         outputs = torch.matmul(inputs, self.weights)
-        if self.with_bias:
-            outputs = outputs + self.biases
+        outputs = outputs + self.biases
         if self.activation_fn is not None:
             outputs = self.activation_fn(outputs)
         if self.with_bn:
@@ -232,16 +228,22 @@ class GlobalPool3d(nn.Module):
         self.method = method
 
     def forward(self, inputs, nv_in):
-        batch_size, num_channels = nv_in.shape
-        sample_idx = torch.arange(batch_size).repeat(nv_in).view(-1,1)
-
-        if self.method=='avg':
-            outputs = scatter_mean(inputs, sample_idx, dim=0)
-        elif self.method=='max':
-            outputs = scatter_max(inputs, sample_idx, dim=0)
-        else:
-            raise ValueError("Unknow pooling method %s."%self.method)
-
+        batch_size = nv_in.shape[0]
+        temp_nv_in = torch.cumsum(nv_in, dim=0)
+        temp_nv_in = torch.cat([torch.zeros(batch_size).to(temp_nv_in), temp_nv_in], dim=0)
+        ta = []
+        for b in range(batch_size):
+            start = temp_nv_in[b]
+            limit = temp_nv_in[b + 1]
+            feats_instance = inputs[start:limit]
+            if self.method == 'max':
+                global_features = torch.max(feats_instance, dim=0, keepdim=True)
+            elif self.method == 'avg':
+                global_features = torch.mean(feats_instance, dim=0, keepdim=True)
+            else:
+                raise ValueError("Unknow pooling method %s."%self.method)
+            ta.append(global_features)
+        outputs = torch.cat(ta, dim=0)
         return outputs
 
 

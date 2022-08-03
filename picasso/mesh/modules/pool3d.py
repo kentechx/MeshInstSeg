@@ -15,7 +15,7 @@ class MaxPoolFunction(torch.autograd.Function):
         output, max_index = outputs
         variables = [input, max_index]
         ctx.save_for_backward(*variables)
-        return output
+        return outputs
 
     @staticmethod
     def backward(ctx, grad_output):
@@ -24,7 +24,7 @@ class MaxPoolFunction(torch.autograd.Function):
 
 
 def maxPool(input, vt_replace, vt_map, vt_out):
-        return MaxPoolFunction.apply(input, vt_replace, vt_map, vt_out)
+    return MaxPoolFunction.apply(input, vt_replace, vt_map, vt_out)
 
 
 class AvgPoolFunction(torch.autograd.Function):
@@ -44,7 +44,7 @@ class AvgPoolFunction(torch.autograd.Function):
 
 
 def avgPool(input, vt_replace, vt_map, vt_out):
-        return AvgPoolFunction.apply(input, vt_replace, vt_map, vt_out)
+    return AvgPoolFunction.apply(input, vt_replace, vt_map, vt_out)
 
 
 

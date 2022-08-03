@@ -26,7 +26,7 @@ class PCloudConv3d(nn.Module):
     """
     def __init__(self, in_channels, out_channels, kernel_size, depth_multiplier=1,
                  use_xavier=True, stddev=1e-3,  with_bn=True,
-                 activation_fn=nn.ReLU, bn_momentum=0.1):
+                 activation_fn=nn.ReLU(), bn_momentum=0.1):
         super(PCloudConv3d, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -53,9 +53,6 @@ class PCloudConv3d(nn.Module):
         self.biases = nn.Parameter(torch.zeros(1, self.out_channels))
 
     def forward(self, inputs, nn_count, nn_index, filt_index, filt_coeff=None):
-        if not self.filter:
-            self.build_kernel()
-
         if filt_coeff is None:
             outputs = conv3d.conv3d(inputs, self.spatial_weights,
                                             nn_count, nn_index, filt_index)
@@ -85,7 +82,7 @@ class PerItemConv3d(nn.Module):
       Variable tensor
     """
     def __init__(self, in_channels, out_channels, use_xavier=True, stddev=1e-3,
-                 with_bn=True, activation_fn=torch.nn.ReLU, bn_momentum=0.1):
+                 with_bn=True, activation_fn=torch.nn.ReLU(), bn_momentum=0.1):
         super(PerItemConv3d, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels

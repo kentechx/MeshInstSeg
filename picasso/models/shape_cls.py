@@ -44,6 +44,7 @@ class PicassoNetII(nn.Module):
         self.cluster = []
         for k in range(self.num_blocks):
             self.cluster.append(BuildF2VCoeff(self.num_clusters, tau=self.temperature))
+        self.cluster = nn.ModuleList(self.cluster)
 
         # FirstBlock
         self.Conv0 = FirstBlock(geometry_in_channels, self.EncodeChannels[0], self.num_clusters,
@@ -67,6 +68,7 @@ class PicassoNetII(nn.Module):
         self.Block.append(DualBlock(self.EncodeChannels[4], self.EncodeChannels[5], growth_rate,
                                     self.num_clusters, radius=self.radius[2], max_iter=self.Niters[4],
                                     bn_momentum=self.bn_momentum))
+        self.Block = nn.ModuleList(self.Block)
 
         # mesh pooling, unpooling configuration
         self.Mesh_Pool = mesh_pool(method='max')
@@ -79,7 +81,7 @@ class PicassoNetII(nn.Module):
         self.FC2 = PerItemConv3d(128, self.num_class, with_bn=False, activation_fn=None)
 
     def extract_facet_geometric_features(self, vertex, face, normals):
-        face = face.to(torch.int)
+        face = face.to(torch.long)
         V1 = vertex[face[:,0],:]
         V2 = vertex[face[:,1],:]
         V3 = vertex[face[:,2],:]
@@ -113,7 +115,7 @@ class PicassoNetII(nn.Module):
     @staticmethod
     def compute_face_normals(geometry_in, shuffle_normals=None):
         if shuffle_normals:
-            sign = torch.rand(geometry_in.shape[0], 1)
+            sign = torch.rand(geometry_in.shape[0], 1).to(geometry_in)
             sign = torch.where(sign<0.5, -1.0, 1.0)
             face_normals = sign*geometry_in[:,:3]
         else:
@@ -141,7 +143,7 @@ class PicassoNetII(nn.Module):
 
         # ============================================Initial Conv==============================================
         vertex_in, face_in, geometry_in, nv_in = mesh_hierarchy[0][:4]
-        full_vt_map = torch.arange(vertex_in.shape[0]).to(torch.int)
+        full_vt_map = torch.arange(vertex_in.shape[0], device=vertex_in.device).to(torch.int)
         full_nf_count = meshUtil.count_vertex_adjface(face_in, full_vt_map, vertex_in)
         face_normals = self.compute_face_normals(geometry_in, shuffle_normals=shuffle_normals)
         facet_geometrics = self.extract_facet_geometric_features(vertex_input, face_in, face_normals)
@@ -153,9 +155,9 @@ class PicassoNetII(nn.Module):
         for k in range(self.num_blocks):
             # block computation:
             vertex_in, face_in, geometry_in, nv_in = mesh_hierarchy[k][:4]
-            full_vt_map = torch.arange(vertex_in.shape[0]).to(torch.int)
+            full_vt_map = torch.arange(vertex_in.shape[0]).to(nv_in)
             full_nf_count = meshUtil.count_vertex_adjface(face_in, full_vt_map, vertex_in)
-            face_normals = self.get_face_normals(geometry_in, shuffle_normals=shuffle_normals)
+            face_normals = self.compute_face_normals(geometry_in, shuffle_normals=shuffle_normals)
             filt_coeff = self.cluster[k](face_normals=face_normals)
             feats = self.Block[k](feats, vertex_in, face_in, full_nf_count, full_vt_map, filt_coeff, nv_in)
 
