@@ -1,0 +1,69 @@
+model:
+  type: "picasso_cls"
+  cfg:
+    num_class: 55
+    stride: [ 1.5, 1.5, 1.5, 1.5 ]
+    mix_components: 27
+    use_height: False
+
+data:
+  train:
+    type: 'shapenetcore_v2'
+    cfg:
+      data_root: '../datasets/shapenet_corev2/'
+      file_txt: ['train_files.txt', 'val_files.txt']
+      max_num_vertices: 1500000
+      training: True
+  val:
+    type: 'shapenetcore_v2'
+    cfg:
+      data_root: '../datasets/shapenet_corev2/'
+      file_txt: ['test_files.txt']
+      max_num_vertices: 1500000
+      training: False
+  test:
+    type: 'shapenetcore_v2'
+    cfg:
+      data_root: '../datasets/shapenet_corev2/'
+      file_txt: ['test_files.txt']
+      max_num_vertices: 1500000
+      training: False
+
+dataloader:
+  train:
+    batch_size: 1
+    num_workers: 0
+    shuffle: True
+    pin_memory: True
+  val:
+    batch_size: 1
+    num_workers: 0
+    shuffle: False
+    pin_memory: True
+  test:
+    batch_size: 1
+    num_workers: 0
+    shuffle: False
+    pin_memory: True
+
+optimizer:
+  type: 'AdamW'
+  cfg:
+    lr: 0.001
+    weight_decay: 0.01
+
+scheduler:
+  type: 'OneCycleLR'
+  cfg:
+    max_lr: 0.001
+    pct_start: 0.1
+    anneal_strategy: 'cos'
+    div_factor: 10
+    final_div_factor: 100
+
+save_cfg:
+
+fp16: False
+epochs: 20
+save_freq: 2
+work_dir: ''

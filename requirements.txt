@@ -1,0 +1,6 @@
+click
+munch
+termcolor
+open3d
+trimesh
+pytorch-lightning>=1.7.0
