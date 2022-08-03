@@ -1,4 +1,4 @@
-import os
+import os, os.path as osp
 import torch
 from torch.utils.data import Dataset
 import numpy as np
@@ -85,8 +85,8 @@ class ShapenetCoreV2(Dataset):
         self.max_num_vertices = max_num_vertices
         self.file_list = []
         for _txt in file_txt:
-            self.file_list = [line.rstrip() for line in open(os.path.join(data_root, _txt))]
-            self.file_list += [line.rstrip() for line in open(os.path.join(data_root, _txt))]
+            self.file_list += [osp.abspath(osp.join(data_root, line.strip())) for line in
+                               open(os.path.join(data_root, _txt)).readlines()]
 
         if training:
             self.transform = TransformTrain(num_classes=55)

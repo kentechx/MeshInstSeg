@@ -10,21 +10,21 @@ data:
   train:
     type: 'shapenetcore_v2'
     cfg:
-      data_root: '../datasets/shapenet_corev2/'
+      data_root: '../datasets/ShapeNetCoreV2/'
       file_txt: ['train_files.txt', 'val_files.txt']
       max_num_vertices: 1500000
       training: True
   val:
     type: 'shapenetcore_v2'
     cfg:
-      data_root: '../datasets/shapenet_corev2/'
+      data_root: '../datasets/ShapeNetCoreV2/'
       file_txt: ['test_files.txt']
       max_num_vertices: 1500000
       training: False
   test:
     type: 'shapenetcore_v2'
     cfg:
-      data_root: '../datasets/shapenet_corev2/'
+      data_root: '../datasets/ShapeNetCoreV2/'
       file_txt: ['test_files.txt']
       max_num_vertices: 1500000
       training: False

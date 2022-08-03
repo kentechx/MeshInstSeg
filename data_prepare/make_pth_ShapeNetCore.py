@@ -46,11 +46,9 @@ if __name__ == '__main__':
     opt = parser.parse_args()
 
     store_folder = opt.write_dir
-    if not os.path.exists(store_folder):
-        os.mkdir(store_folder)
-        os.mkdir(store_folder + '/train')
-        os.mkdir(store_folder + '/val')
-        os.mkdir(store_folder + '/test')
+    os.makedirs(store_folder + '/train', exist_ok=True)
+    os.makedirs(store_folder + '/val', exist_ok=True)
+    os.makedirs(store_folder + '/test', exist_ok=True)
 
     # load the train/val/test splits
     iter = 0
@@ -98,8 +96,7 @@ if __name__ == '__main__':
                 num_vertex_facet['test'].append(nV_nF)
 
     for phase in ['train', 'val', 'test']:
-        files = glob.glob(os.path.join(store_folder, '%s/*.pth' % phase))
+        files = glob.glob(osp.join(store_folder, '%s/*.pth' % phase))
+        files = [f[len(store_folder) + 1:] for f in files]
 
-        with open(os.path.join(store_folder, '%s_files.txt' % phase), 'w') as file_list:
-            for filepath in files:
-                file_list.write("%s\n" % filepath)
+        print('\n'.join(files), file=open(osp.join(store_folder, '%s_files.txt' % phase), 'w'))
