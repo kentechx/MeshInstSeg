@@ -4,3 +4,4 @@ termcolor
 open3d
 trimesh
 pytorch-lightning>=1.7.0
+torch_scatter
