@@ -14,11 +14,10 @@ from tools.pl_models import build_model
 
 @click.command()
 @click.option('--config', help="train config file path", default="configs/shapenetcore_v2.yaml")
-@click.option('--work_dir', help="the dir to save logs and models", default="work_dir")
-@click.option('--version', help="the version of the experiment", default=None)
-@click.option('--resume_from', help="the checkpoint file to resume from", default=None)
-@click.option('--auto_resume', help="auto resume from the latest checkpoint", is_flag=True, default=False)
 @click.option('--gpus', help="the gpus to use", default=1)
+@click.option('--version', help="the version of the experiment", default=None)
+@click.option('--auto_resume', help="auto resume from the latest checkpoint", is_flag=True, default=False)
+@click.option('--resume_from', help="the checkpoint file to resume from", default=None)
 @click.option('--no_validate', help="do not validate the model", is_flag=True)
 @click.option('--seed', help="random seed", default=42)
 @click.option('--deterministic', help="whether to set deterministic options for CUDNN backend", is_flag=True)
@@ -35,7 +34,7 @@ def run(**kwargs):
 
     # logger
     version = 0 if kwargs['version'] is None else kwargs['version']
-    logger = TensorBoardLogger(kwargs['work_dir'], name=osp.split(kwargs['config'])[-1].split('.')[0], version=version)
+    logger = TensorBoardLogger("work_dir", name=osp.split(kwargs['config'])[-1].split('.')[0], version=version)
     os.makedirs(logger.log_dir, exist_ok=True)
     shutil.copy(kwargs['config'], logger.log_dir)  # copy config file
 
