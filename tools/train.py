@@ -40,7 +40,7 @@ def run(**kwargs):
     shutil.copy(kwargs['config'], logger.log_dir)  # copy config file
 
     # trainer
-    debug = True
+    debug = False
     debug_args = {'limit_train_batches': 10, "limit_val_batches": 10} if debug else {}
 
     model = build_model(cfg)
