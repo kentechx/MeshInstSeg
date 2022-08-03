@@ -8,7 +8,7 @@ from .modules import *
 def _filter_variable_(shape, stddev=1.0, use_xavier=True):
     weight = nn.Parameter(torch.empty(shape))
     if use_xavier:
-        return nn.init.xavier_normal(weight)
+        return nn.init.xavier_normal_(weight)
     else:
         return nn.init.trunc_normal_(weight,mean=0,std=stddev)
 
