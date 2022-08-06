@@ -6,6 +6,7 @@ from picasso.models import shape_seg, shape_cls
 from my_model.datasets import build_dataset
 
 import pytorch_lightning as pl
+import torchmetrics
 
 
 def build_model(cfg: Munch):
@@ -67,6 +68,11 @@ class LitPicassoCls(LitBase):
         super().__init__(cfg)
         self.net = shape_cls.PicassoNetII(**cfg.model.cfg)
 
+        # metrics
+        self.train_accuracy = torchmetrics.Accuracy()
+        self.test_accuracy = torchmetrics.Accuracy()
+        self.val_accuracy = torchmetrics.Accuracy()
+
     def forward(self, *args, **kwargs):
         return self.net(*args, **kwargs)
 
@@ -83,6 +89,8 @@ class LitPicassoCls(LitBase):
 
         self.log('loss', loss, batch_size=self.cfg.dataloader.train.batch_size)
         self.log('lr', self.optimizers().param_groups[0]['lr'])
+        self.train_accuracy(out, label_in)
+        self.log("train_acc", self.train_accuracy, on_epoch=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -95,6 +103,8 @@ class LitPicassoCls(LitBase):
         out = self.net(vertex_in, face_in, nv_in, mf_in, shuffle_normals=False)
         loss = F.cross_entropy(out, label_in)
         self.log('val_loss', loss, True, batch_size=self.cfg.dataloader.val.batch_size)
+        self.val_accuracy(out, label_in)
+        self.log("val_acc", self.val_accuracy, on_epoch=True)
 
     def test_step(self, batch, batch_idx):
         vertex_in = batch['vertex_in']
@@ -106,6 +116,8 @@ class LitPicassoCls(LitBase):
         out = self.net(vertex_in, face_in, nv_in, mf_in, shuffle_normals=False)
         loss = F.cross_entropy(out, label_in)
         self.log('test_loss', loss, True, batch_size=self.cfg.dataloader.test.batch_size)
+        self.test_accuracy(out, label_in)
+        self.log("test_acc", self.test_accuracy, on_epoch=True)
 
 
 class LitPicassoShapeSeg(LitBase):

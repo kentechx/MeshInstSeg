@@ -31,18 +31,18 @@ data:
 
 dataloader:
   train:
-    batch_size: 1
-    num_workers: 0
+    batch_size: 16
+    num_workers: 4
     shuffle: True
     pin_memory: True
   val:
-    batch_size: 1
-    num_workers: 0
+    batch_size: 16
+    num_workers: 4
     shuffle: False
     pin_memory: True
   test:
-    batch_size: 1
-    num_workers: 0
+    batch_size: 16
+    num_workers: 4
     shuffle: False
     pin_memory: True
 
