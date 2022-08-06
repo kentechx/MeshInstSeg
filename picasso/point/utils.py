@@ -42,15 +42,12 @@ def fps(xyz_in, nv_xyz, num_sample):
 
 def build_range_graph(xyz_data, xyz_query, nv_data, nv_query,
                       radius, nn_uplimit=None, kernel_shape=None, fuzzy=True):
+    nn_cnt, nn_idx, nn_dst = range_search(xyz_data, xyz_query, nv_data, nv_query,
+                                          radius=radius, max_nn=nn_uplimit)
     if fuzzy:
-        nn_cnt, nn_idx, nn_dst = range_search(xyz_data, xyz_query, nv_data, nv_query,
-                                              radius=radius, max_nn=nn_uplimit)
         filt_idx, filt_coeff = fuzzySPH3Dkernel_(xyz_data, xyz_query, nn_idx, nn_dst, radius,
                                                  kernel=kernel_shape)
-        return nn_cnt, nn_idx, nn_dst, filt_idx, filt_coeff
     else:
-        nn_cnt, nn_idx, nn_dst = range_search(xyz_data, xyz_query, nv_data, nv_query,
-                                              radius=radius, max_nn=nn_uplimit)
         filt_idx = SPH3Dkernel_(xyz_data, xyz_query, nn_idx, nn_dst,
                                 radius, kernel=kernel_shape)
         filt_coeff = None

@@ -23,7 +23,7 @@ class ConvFunction(torch.autograd.Function):
 
 
 def conv3d(input, filter, nn_count, nn_index, bin_index):
-        return ConvFunction.apply(input, filter, nn_count, nn_index, bin_index)
+    return ConvFunction.apply(input, filter, nn_count, nn_index, bin_index)
 
 
 class FuzzyConv3dFunction(torch.autograd.Function):
@@ -45,4 +45,4 @@ class FuzzyConv3dFunction(torch.autograd.Function):
 
 
 def fuzzyconv3d(input, filter, nn_count, nn_index, bin_index, bin_coeff):
-        return FuzzyConv3dFunction.apply(input, filter, nn_count, nn_index, bin_index, bin_coeff)
+    return FuzzyConv3dFunction.apply(input, filter, nn_count, nn_index, bin_index, bin_coeff)
