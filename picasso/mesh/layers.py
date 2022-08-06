@@ -230,7 +230,7 @@ class GlobalPool3d(nn.Module):
     def forward(self, inputs, nv_in):
         batch_size = nv_in.shape[0]
         temp_nv_in = torch.cumsum(nv_in, dim=0)
-        temp_nv_in = torch.cat([torch.zeros(batch_size).to(temp_nv_in), temp_nv_in], dim=0)
+        temp_nv_in = torch.cat([torch.zeros(1).to(temp_nv_in), temp_nv_in], dim=0)
         ta = []
         for b in range(batch_size):
             start = temp_nv_in[b]
