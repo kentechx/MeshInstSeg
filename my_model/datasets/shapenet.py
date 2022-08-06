@@ -127,9 +127,10 @@ class ShapenetCoreV2(Dataset):
         batch_data = batch_data[:trunc_batch_size]
 
         vertex_in = torch.cat([data['vertex'] for data in batch_data], dim=0)
-        face_in = torch.cat([data['face'] for data in batch_data], dim=0)
         label_in = torch.tensor([data['label'] for data in batch_data], dtype=torch.long)
         nv_in = torch.tensor([data['vertex'].shape[0] for data in batch_data], dtype=torch.int32)
         mf_in = torch.tensor([data['face'].shape[0] for data in batch_data], dtype=torch.int32)
+
+        face_in = torch.cat([data['face'] + torch.sum(nv_in[:i]) for i, data in enumerate(batch_data)], dim=0)
 
         return {"vertex_in": vertex_in, "face_in": face_in, "label_in": label_in, "nv_in": nv_in, "mf_in": mf_in}
