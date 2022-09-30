@@ -1,0 +1,57 @@
+model:
+  type: "tooth_axis_reg"
+  cfg:
+    num_class: 6
+    stride: [ 1.5, 1.5, 1.5, 1.5 ]
+    mix_components: 27
+    use_height: False
+
+data:
+  train:
+    type: 'tooth_axis'
+    cfg:
+      data_root: '/mnt/datasets/tooth/step_tooth'
+      scenes: [ '1_200', '201_400', '401_600', '601_800', '801_1000', '1001_1200', '1201_1400', '1401_1600', '1601_1800' ]
+      max_num_vertices: 1500000
+      training: True
+  val:
+    type: 'tooth_axis'
+    cfg:
+      data_root: '/mnt/datasets/tooth/step_tooth'
+      scenes: [ '1801_2000', '2001_2175' ]
+      max_num_vertices: 1500000
+      training: False
+
+dataloader:
+  train:
+    batch_size: 64
+    num_workers: 4
+    shuffle: True
+    pin_memory: True
+  val:
+    batch_size: 64
+    num_workers: 4
+    shuffle: False
+    pin_memory: True
+
+optimizer:
+  type: 'AdamW'
+  cfg:
+    lr: 0.001
+    weight_decay: 0.01
+
+scheduler:
+  type: 'OneCycleLR'
+  cfg:
+    max_lr: 0.001
+    pct_start: 0.1
+    anneal_strategy: 'cos'
+    div_factor: 10
+    final_div_factor: 100
+
+save_cfg:
+
+fp16: False
+epochs: 20
+save_freq: 1
+save_last_k: 1
